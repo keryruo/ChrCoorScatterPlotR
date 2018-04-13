@@ -6,7 +6,7 @@ nsnps=100
 test_data2 = data.frame(
        SNP_chr=rep(paste0('chr',1:nchr),each=nsnps),
        SNP_pos=rep(1:nsnps,nchr), 
-       gene_chr=rep(paste0('chr',sample(nchr)),each=nsnps),
+       gene_chr=rep(paste0('chr',sample(nchr)),nsnps),
        gene_pos=sample(nchr*nsnps)
     )
 
@@ -15,7 +15,7 @@ ChrCoorScatterPlot(d)
 # pt.col=c("#3794bf", "#df8640")
 
 
-ChrCoorScatterPlot<-function(d,cex.axis=0.7,pt.col=c('gray10','gray50'),pt.bg=c('gray10','gray50')){
+ChrCoorScatterPlot<-function(d,cex.axis=0.7,pt.col=c('gray10','gray50'),pt.bg=c('gray10','gray50'),cex.axis=0.6,pch=21,pt.cex=0.45){
             # Set positions, ticks, and labels for plotting
             d<-d[order(d$SNP_chr, d$SNP_pos),] # sort
             d$SNP_pos2=NA
@@ -59,7 +59,7 @@ ChrCoorScatterPlot<-function(d,cex.axis=0.7,pt.col=c('gray10','gray50'),pt.bg=c(
             ymin = max(d$gene_pos2) * -0.03
             # axis region plot, suppress both xaxis and yaxis
             plot(0,col=F,xaxt='n',yaxt='n',bty='n',xaxs='i',yaxs='i',xlim=c(xmin,xmax), ylim=c(ymin,ymax),
-                 xlab=xlabel,ylab=ylabel,las=1,cex.axis=0.7)
+                 xlab=xlabel,ylab=ylabel,las=1,cex.axis=cex.axis)
 
             # SNP stagger labels (x-axis)
             # How many chromosome SNP_chr have
@@ -69,7 +69,7 @@ ChrCoorScatterPlot<-function(d,cex.axis=0.7,pt.col=c('gray10','gray50'),pt.bg=c(
             SNP_blank = rep('',length(unique(d$SNP_chr))+1)
             # adding tick marks for x-axis
             axis(1,at=SNP_ticks,labels=SNP_blank,lwd=0,lwd.ticks=1,cex.axis=cex.axis)
-            axis(1,at=SNP_ticks,labels=SNP_labs,lwd=0,lwd.ticks=0,cex.axis=0.4,line=-0.25)
+            axis(1,at=SNP_ticks,labels=SNP_labs,lwd=0,lwd.ticks=0,cex.axis=cex.axis*0.8,line=-0.25)
 
             # gene stagger labels (y-axis)
             # How many chromosome gene_chr have
@@ -79,7 +79,7 @@ ChrCoorScatterPlot<-function(d,cex.axis=0.7,pt.col=c('gray10','gray50'),pt.bg=c(
             gene_blank = rep('',length(unique(d$gene_chr))+1)
             # adding tick marks for y-axis
             axis(2,at=gene_ticks,labels=gene_blank,lwd=0,lwd.ticks=1,cex.axis=cex.axis)
-            axis(2,at=gene_ticks,labels=gene_labs,lwd=0,lwd.ticks=0,cex.axis=0.4)
+            axis(2,at=gene_ticks,labels=gene_labs,lwd=0,lwd.ticks=0,cex.axis=cex.axis*0.8)
 
             # add points per chromosome
             icol=1
@@ -88,7 +88,7 @@ ChrCoorScatterPlot<-function(d,cex.axis=0.7,pt.col=c('gray10','gray50'),pt.bg=c(
             pt.bg = rep(pt.bg,length(unique(d$SNP_chr)))[1:length(unique(d$SNP_chr))]
             # add all points
             for (i in unique(d$SNP_chr)) {
-                 with(d[d$SNP_chr==i, ],points(SNP_pos2, gene_pos2, col=pt.col[icol],bg=pt.bg[icol],cex=pt.cex,pch=21))
+                 with(d[d$SNP_chr==i, ],points(SNP_pos2, gene_pos2, col=pt.col[icol],bg=pt.bg[icol],cex=pt.cex,pch=pch))
                  icol=icol+1
             }
             # add box for the plot
