@@ -15,7 +15,7 @@ ChrCoorScatterPlot(d)
 # pt.col=c("#3794bf", "#df8640")
 
 
-ChrCoorScatterPlot<-function(d,cex.axis=0.7,pt.col=c('gray10','gray50'),pt.bg=c('gray10','gray50'),cex.axis=0.6,pch=21,pt.cex=0.45){
+ChrCoorScatterPlot<-function(d,cex.axis=0.7,pt.col=c('gray10','gray50'),pt.bg=c('gray10','gray50'),pch=21,pt.cex=0.45){
             # Set positions, ticks, and labels for plotting
             d<-d[order(d$SNP_chr, d$SNP_pos),] # sort
             d$SNP_pos2=NA
