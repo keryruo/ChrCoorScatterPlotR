@@ -1,0 +1,139 @@
+######## basic statistic plot for matrixEQTL output ############
+######## 2018/04/26 #########
+
+
+basicPlot<-function(readir,i,writedir,hg19AllGeneTSSFile,hg19GeneAnnoFile,genotypeMatrFile,cliPheFile,peaknum='no',peakCountFile,PhenotypeCovariateDir){
+       ######### load necessary packages #########
+       library(reshape2)
+       library(ggplot2)
+       library(pheatmap)
+       
+       ######### disable string2factors and scientific notation in R #########
+       options(stringsAsFactors = FALSE)
+       options(scipen=999)
+       
+       ######### readin file for further processing #########
+       resFile<-paste0(readir,"qtlReport_PC",i)
+       rep<-read.table(resFile,sep="\t",header=TRUE)
+
+       ######### load gene annotation file #########
+       hg19GeneAnno<-read.table(hg19GeneAnnoFile,header=FALSE,sep="\t")
+       colnames(hg19GeneAnno)<-c("ENSG","symbol","chr","start","end","strand","genetype")
+       rownames(hg19GeneAnno)<-as.character(hg19GeneAnno[,"ENSG"])
+       rep$genetype<-hg19GeneAnno[rep$gene,'genetype']
+
+       ######### load gene tss coordinate,tss from the longest transcript #########
+       tss<-read.table(hg19AllGeneTSSFile,sep="\t",header=FALSE)
+       colnames(tss)<-c('chr','pos','ensg')
+       targenes<-colsplit(tss$ensg,"\\.",c('ensg','suffix'))[,'ensg']
+       rownames(tss)<-targenes
+       rep$genechr<-tss[as.character(rep$gene),'chr']
+       rep$genetss<-tss[as.character(rep$gene),'pos']     
+
+       ######### load genotype matrix #########
+       genotypeMatr<-read.table(genotypeMatrFile,sep="\t",header=TRUE,row.names=1)
+       genotypeSampleSharing<- apply(genotypeMatr,1,sum)
+       rep$genotypesamplesharing<-genotypeSampleSharing[as.character(rep$SNP)]
+       sampleID<-colnames(genotypeMatr)
+
+       ######### coordinate of genotype midpoint  #########  
+       genotypeCoor<-colsplit(rep$SNP,"\\:|\\-",c('chr','start','end'))
+      
+      if(all(is.na(genotypeCoor$end))){
+        rep$genotypeMidpoint<-genotypeCoor$start}else{
+        rep$genotypeMidpoint<-genotypeCoor$start+round((genotypeCoor$end-genotypeCoor$start)/2)}
+      
+       rep$genotypechr<-genotypeCoor$chr
+
+       ######### distance between gene tss and genotype midpoint #########
+       rep$genegenotypedist<-abs(rep$genetss-rep$genotypeMidpoint)
+
+       ######### pattern replace,chr10 to 10 #########
+       rep$chr<-gsub("chr(([0-9]+)|(M)|(X)|(Y))", "\\1", rep$genechr)# chr(NO) to NO
+       rep<-rep[rep$chr!='X' & rep$chr!='Y' & rep$chr!="M",]
+
+       ######### significant report #########
+       sigf<-rep[rep$FDR<0.1,]
+       nonsigf<-rep[rep$FDR>=0.1,]
+
+       ######### gene type distribution between fdr>=0.5 group and fdr<0.5 group #########
+       genetypeprop<-c(table(sigf$genetype)/sum(table(sigf$genetype)),
+                table(nonsigf$genetype)/sum(table(nonsigf$genetype)),
+                table(rep$genetype)/sum(table(rep$genetype)))
+       genetypedisr<-data.frame(prop=genetypeprop,
+                         genetype=names(genetypeprop),
+                         group=c(rep('sigf',length(unique(sigf$genetype))),
+                                 rep('nonsigf',length(unique(nonsigf$genetype))),
+                                 rep('all',length(unique(rep$genetype)))))
+                                 
+    ######### sample-sharing distribution between fdr>=0.5 group and fdr<0.5 group #########
+    sigftype<-data.frame(table(sigf$genotypesamplesharing))
+    nonsigftype<-data.frame(table(nonsigf$genotypesamplesharing))
+    alltype<-data.frame(table(rep$genotypesamplesharing))
+    
+    ######### sample-sharing distribution dataframe for ggplot #########
+    samplesharingdist<-rbind(sigftype,nonsigftype,alltype)
+    colnames(samplesharingdist)<-c("sample_num","freq")
+    samplesharingdist$group<-c(rep('sigf',nrow(sigftype)),rep('nonsigftype',nrow(nonsigftype)),rep('alltype',nrow(alltype)))
+
+
+    # distance between gene and genotype distribution between fdr>0.1 group and fdr<=0.1 group 
+    genegenotypedistdisr<-data.frame(genegenotypedist=c(sigf$genegenotypedist,nonsigf$genegenotypedist,rep$genegenotypedist),
+			              group=c(rep('sigf',nrow(sigf)),rep('nonsigf',nrow(nonsigf)),rep('all',nrow(rep))))                        
+
+    ######### plot part #########                
+    pdf(file=paste0(writedir,"ResultDistributionPlot.pdf"))
+       p1<-ggplot(rep,aes(x=p.value,y=..density..))+geom_histogram(fill='cornsilk',colour='grey60',size=0.2,binwidth = 0.001)+geom_density()+ylab("Density")+xlab("Pvalue")+theme(plot.title = element_text(size=rel(1.5),family="Times",face="bold",hjust=0.5),axis.title=element_text(size=9,face="bold",hjust=0.5),axis.text.y=element_text(size=8),axis.text.x = element_text(hjust = 1,size=8))
+       p2<-ggplot(rep,aes(x=FDR,y=..density..))+geom_histogram(fill='cornsilk',colour='grey60',size=0.2,binwidth = 0.01)+geom_density()+ggtitle("FDR distribution for all 2,000,000 gene-peak pairs")+ylab("Density")+xlab("FDR")+theme(plot.title = element_text(size=rel(1.5),family="Times",face="bold",hjust=0.5),axis.title=element_text(size=9,face="bold",hjust=0.5),axis.text.y=element_text(size=8),axis.text.x = element_text(hjust = 1,size=8))
+       p1+ggtitle("P-value distribution cis-eQTL/cis-dsQTL")
+       p2+ggtitle("FDR distribution for cis-eQTL/cis-dsQTL")
+       ggplot(genetypedisr,aes(x=genetype,y=prop,fill=group))+geom_bar(stat='identity',width=0.5,position='dodge')                     
+       ggplot(samplesharingdist,aes(x=sample_num,y=freq,fill=group))+geom_bar(stat='identity',width=0.5,position='dodge')+geom_text(aes(label=freq),vjust=-0.2,size=1) 
+       ggplot(genegenotypedistdisr,aes(x=genegenotypedist,colour=group))+geom_line(stat="density")
+       dev.off()
+       
+      #################################correlation between top PCs from genotype data and clinical traits #######################################################################
+       ########## pca analysis of uniPeakMatr ##########
+       uniPCA <- prcomp(genotypeMatr, scale. = T, center = T)
+       loading<-uniPCA$rotation
+       genoPC<-loading[,1:5]
+       colnames(genoPC)<-paste0("genoPC",1:5)
+
+      ########## phenotype data #########
+      cliPhe<-read.table(cliPheFile,sep="\t",header=1,row.names=1)
+      ######### extract clinical traits of necessary samples#########
+      cliPhe<-cliPhe[sampleID,]
+
+       ########## a total sample phenotype dataframe ##########
+       if(peaknum=='yes'){
+          ########## ATAC-seq peak count information file #########
+          peakCountInfo = read.table(peakCountFile, header=F, col.names=c("PeakNumber", "SampleID"))
+          rownames(peakCountInfo) = peakCountInfo[,2]
+          peakCountInfo<-peakCountInfo[sampleID,"PeakNumber"]
+          cliPhe<-as.matrix(data.frame(cliPhe,peaknum=peakCountInfo,genoPC))}else{
+          cliPhe<-as.matrix(data.frame(cliPhe,genoPC))
+       }
+
+       ## PCA top PC of RNA expression
+       i=10
+       covariates_file_name<-paste0(PhenotypeCovariateDir,"CovrtPCno",i,".matr") 
+       cvrt<-t(read.table(covariates_file_name,sep="\t",header=1,row.names=1))
+       
+       #### calculate spearman correlation pvalue between genotype and phenotype PC
+       pvalue<-c()
+       for(i in 1:ncol(cliPhe)){
+           for(j in 1:ncol(cvrt)){
+               pvalue<-c(pvalue,cor.test(cliPhe[,i],cvrt[,j],method='spearman')$p.value)
+           }
+       }
+       cor_pvalue<-data.frame(matrix(pvalue,ncol=ncol(cliPhe)))
+       rownames(cor_pvalue)<-paste0('PC',1:ncol(cvrt))
+       colnames(cor_pvalue)<-colnames(cliPhe)
+
+       ############### pvalue heatmap ###############
+       filename=paste0(writedir,"ConfoundingSourcePvalueHeatmap.pdf")
+       pdf()
+       pheatmap(t(cor_pvalue),show_colnames=TRUE,show_rownames=TRUE,cluster_col=FALSE,cluster_row=FALSE,main="Spearman correlation between top PCs of phenotype and biological confounding factors",fontsize=8,filename=filename)
+       dev.off()
+       ###############
+}
