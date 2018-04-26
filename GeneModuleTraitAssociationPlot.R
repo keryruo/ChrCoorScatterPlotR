@@ -75,7 +75,7 @@ moduleTraitAssociationPlot<-function(module_trait,moduleDavidDir,datExpr){
     p <- p + aes(fill=logP) + scale_fill_continuous(low="#009999", high="#FF6666")
     
     plot_list[[1]]=h[[4]]
-    plot_list[[1]]=p
+    plot_list[[2]]=p
     
     for(j in 1:length(module_trait[[i]])){
         trait<-module_trait[[i]][j]
@@ -91,7 +91,7 @@ moduleTraitAssociationPlot<-function(module_trait,moduleDavidDir,datExpr){
         p<-p+ theme_bw()+ theme(panel.border = element_blank(), axis.line = element_line(colour = "black"), 
            panel.grid.major = element_blank(),panel.grid.minor = element_blank(),panel.background = element_blank())
         p<-p+theme_boxplot(12)
-        plot_list[[j+1]]=p
+        plot_list[[j+2]]=p
     }
     pdf()
     g<-do.call(grid.arrange,plot_list)
