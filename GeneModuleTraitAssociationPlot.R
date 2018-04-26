@@ -56,7 +56,7 @@ moduleTraitAssociationPlot<-function(module_trait,moduleDavidDir,datExpr){
     
     # module pheatmap of FPKM
     pdf()
-    h<-pheatmap(t(submatr), color =colorRampPalette("#009999","#FF6666")(100), 
+    h<-pheatmap(t(submatr), color =colorRampPalette(c("#009999","#FF6666"))(100), 
               annotation_col=cliPhe33,annotation_colors =ann_colors,scale='row',
               cluster_rows= as.hclust(dendsort(hclust(dist(t(submatr))))),cluster_cols = F,
               show_rownames = F,main=paste0("MM",module))
