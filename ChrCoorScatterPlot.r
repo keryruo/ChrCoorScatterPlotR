@@ -15,28 +15,29 @@ ChrCoorScatterPlot(d)
 # pt.col=c("#3794bf", "#df8640")
 
 
-ChrCoorScatterPlot<-function(d,cex.axis=0.7,pt.col=c('gray10','gray50'),pt.bg=c('gray10','gray50'),pch=21,pt.cex=0.45){
+ChrCoorScatterPlot<-function(d,xlab="",ylab="",cex.axis=0.7,pt.col=c('gray10','gray50'),pt.bg=c('gray10','gray50'),pch=21,pt.cex=0.45){
             # Set positions, ticks, and labels for plotting
-            d<-d[order(d$SNP_chr, d$SNP_pos),] # sort
+            d<-d[order(d$SNP_chr, d$SNP_pos),] # sort by chrom and pos
             d$SNP_pos2=NA
             d$gene_pos2=NA
 
-            ## Fix for the bug where one chromosome is missing. Adds index column #####
+            ## chromosome symbol 1:22,X,Y,M #####
             chrSyb<-as.character(c(1:22,'X','Y','M'))
             # SNP index setting
             # pattern replace,chr10 to 10
             d$SNP_index<-gsub("chr(([0-9]+)|(M)|(X)|(Y))", "\\1", d$SNP_chr)# chr(NO) to NO
 
             # SNP position setting
+            # a additional column added to record the abosulute position of each loci
             nchr=length(unique(d$SNP_chr))
             SNP_ticks = rep(NA,length(unique(d$SNP_chr))+1)
             SNP_ticks[1] = 0
-            for (i in 1:length(unique(d$SNP_index))) {
+            for (i in 1:length(unique(d$SNP_index))){
                  chr=chrSyb[i]
-                 d[d$SNP_index==chr, 'SNP_pos2'] <- d[d$SNP_index==chr,'SNP_pos']+SNP_ticks[i]
-                 SNP_ticks[i+1] =SNP_ticks[i]+max(d[d$SNP_index==chr,'SNP_pos'])
-            }
-            xlabel = 'SNP Chromosome'
+                 d[d$SNP_index==chr, 'SNP_pos2'] <- (d[d$SNP_index==chr,'SNP_pos']-min(d[d$SNP_index==chr,'SNP_pos'])+1)+SNP_ticks[i]
+                 SNP_ticks[i+1] = max(d[d$SNP_index==chr, 'SNP_pos2'])      
+            }                         
+                                      
             # gene index setting 
             # pattern replace,chr10 to 10
             d$gene_index <-gsub("chr(([0-9]+)|(M)|(X)|(Y))", "\\1", d$gene_chr)# chr(NO) to NO
@@ -47,10 +48,9 @@ ChrCoorScatterPlot<-function(d,cex.axis=0.7,pt.col=c('gray10','gray50'),pt.bg=c(
             gene_ticks[1] = 0
             for (i in 1:length(unique(d$gene_index))) {
                  chr=chrSyb[i]
-                 d[d$gene_index==chr, 'gene_pos2'] <- d[d$gene_index==chr,'gene_pos']+gene_ticks[i]
-                 gene_ticks[i+1] =gene_ticks[i]+max(d[d$gene_index==chr,'gene_pos'])
+                 d[d$gene_index==chr, 'gene_pos2'] <- (d[d$gene_index==chr,'gene_pos']-min(d[d$gene_index==chr,'gene_pos'])+1)+gene_ticks[i]
+                 gene_ticks[i+1] = max(d[d$gene_index==chr, 'gene_pos2'])   
             }
-            ylabel = 'Gene Chromosome'
 
             # Initialize plot
             xmax = max(d$SNP_pos2) * 1.03
@@ -59,7 +59,7 @@ ChrCoorScatterPlot<-function(d,cex.axis=0.7,pt.col=c('gray10','gray50'),pt.bg=c(
             ymin = max(d$gene_pos2) * -0.03
             # axis region plot, suppress both xaxis and yaxis
             plot(0,col=F,xaxt='n',yaxt='n',bty='n',xaxs='i',yaxs='i',xlim=c(xmin,xmax), ylim=c(ymin,ymax),
-                 xlab=xlabel,ylab=ylabel,las=1,cex.axis=cex.axis)
+                 xlab=xlab,ylab=ylab,las=1,cex.axis=cex.axis)
 
             # SNP stagger labels (x-axis)
             # How many chromosome SNP_chr have
