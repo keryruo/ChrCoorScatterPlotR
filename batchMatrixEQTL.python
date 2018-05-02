@@ -1,0 +1,30 @@
+# -*- coding:utf-8 -*-
+import os
+import time
+from multiprocessing import Pool 
+
+######## wrap matrixEQTL.R into a function in python for multiple-processing ##########
+def matrixEQTL(snp_file_name,binSignal_file_name,snp_location_file_name,bin_location_file_name,covariates_file_name,output_file_name_cis,output_file_name_tra):
+    os.system('Rscript matrixEQTL.R {snp_file_name} {binSignal_file_name} {snp_location_file_name} {bin_location_file_name} {covariates_file_name} {output_file_name_cis} {output_file_name_tra}'.format(snp_file_name=snp_file_name,
+               binSignal_file_name=binSignal_file_name,snp_location_file_name=snp_location_file_name,bin_location_file_name=bin_location_file_name,
+               covariates_file_name=covariates_file_name,output_file_name_cis=output_file_name_cis,output_file_name_tra=output_file_name_tra))
+
+# run multiple processing
+if __name__=='__main__':
+    start_time=time.time()
+    pools = Pool(55)
+    for i in xrange():
+        snp_file_name=
+        snp_location_file_name=
+        binSignal_file_name =  
+        bin_location_file_name=
+        covariates_file_name=
+        output_file_name_cis=
+        output_file_name_tra=
+        pools.apply_async(matrixEQTL, [snp_file_name,binSignal_file_name,snp_location_file_name,bin_location_file_name,covariates_file_name,output_file_name_cis,output_file_name_tra])
+    
+    pools.close()
+    pools.join()
+    print 'main processing ends, it takes %s'%(time.time()-start_time)
+
+del pools
