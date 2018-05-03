@@ -11,7 +11,7 @@ cvrtNoSelect<-function(reaDir,writeDir){
            file=paste0(reaDir,"qtlReport_PC",i)
            qtlReport<-fread(file,sep="\t",header=TRUE)
            for(fdr in seq(0,0.25,0.01)){
-           significantQ<-c(significantQ,sum(qtlReport[,6]<fdr))
+           significantQ<-c(significantQ,sum(qtlReport$FDR<fdr)) # qtlReport[,6,with=FALSE] is right, qtlReport[,6] is false for data.table
         }
        }
        sigfPeaks<-data.frame(cvrtnum=factor(rep(paste0(1:20,'PCno'),each=length(seq(0,0.25,0.01))),levels=paste0(1:20,'PCno')),sigfPeaksNum=significantQ,fdr=rep(seq(0,0.25,0.01),20))
