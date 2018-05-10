@@ -2,12 +2,12 @@
 # used for describing significant QTL number under different number of covariates in regression model
 # scatter plot
 library(data.table)
-library(ggplot2)
-cvrtNoSelect<-function(reaDir,writeDir){
+library(ggplot2)  
+cvrtNoSelect<-function(reaDir,writeDir,N){  # N is the number of PC
        stopifnot(class(reaDir)=="character")
        stopifnot(class(writeDir)=="character")
        significantQ<-c()
-       for(i in seq(1,20,1)){
+       for(i in seq(1,N,1)){
            file=paste0(reaDir,"qtlReport_PC",i)
            qtlReport<-fread(file,sep="\t",header=TRUE)
            for(fdr in seq(0,0.25,0.01)){
