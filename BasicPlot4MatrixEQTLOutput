@@ -2,7 +2,7 @@
 ######## 2018/04/26 #########
 
 
-basicPlot<-function(readir,i,writedir,hg19AllGeneTSSFile,hg19GeneAnnoFile,genotypeMatrFile,cliPheFile,peaknum='no',peakCountFile,PhenotypeCovariateDir){
+basicPlot<-function(readir,i,writedir,hg19AllGeneTSSFile,hg19GeneAnnoFile,genotypeMatrFile,cliPheFile,peaknum='no',peakCountFile=NULL,PhenotypeCovariateDir){
        ######### load necessary packages #########
        library(reshape2)
        library(ggplot2)
@@ -82,7 +82,7 @@ basicPlot<-function(readir,i,writedir,hg19AllGeneTSSFile,hg19GeneAnnoFile,genoty
 			              group=c(rep('sigf',nrow(sigf)),rep('nonsigf',nrow(nonsigf)),rep('all',nrow(rep))))                        
 
     ######### plot part #########                
-    pdf(file=paste0(writedir,"ResultDistributionPlot.pdf"))
+    pdf()
        p1<-ggplot(rep,aes(x=p.value,y=..density..))+geom_histogram(fill='cornsilk',colour='grey60',size=0.2,binwidth = 0.001)+geom_density()+ylab("Density")+xlab("Pvalue")+theme(plot.title = element_text(size=rel(1.5),family="Times",face="bold",hjust=0.5),axis.title=element_text(size=9,face="bold",hjust=0.5),axis.text.y=element_text(size=8),axis.text.x = element_text(hjust = 1,size=8))
        p2<-ggplot(rep,aes(x=FDR,y=..density..))+geom_histogram(fill='cornsilk',colour='grey60',size=0.2,binwidth = 0.01)+geom_density()+ggtitle("FDR distribution for all 2,000,000 gene-peak pairs")+ylab("Density")+xlab("FDR")+theme(plot.title = element_text(size=rel(1.5),family="Times",face="bold",hjust=0.5),axis.title=element_text(size=9,face="bold",hjust=0.5),axis.text.y=element_text(size=8),axis.text.x = element_text(hjust = 1,size=8))
        p1+ggtitle("P-value distribution cis-eQTL/cis-dsQTL")
@@ -90,6 +90,7 @@ basicPlot<-function(readir,i,writedir,hg19AllGeneTSSFile,hg19GeneAnnoFile,genoty
        ggplot(genetypedisr,aes(x=genetype,y=prop,fill=group))+geom_bar(stat='identity',width=0.5,position='dodge')                     
        ggplot(samplesharingdist,aes(x=sample_num,y=freq,fill=group))+geom_bar(stat='identity',width=0.5,position='dodge')+geom_text(aes(label=freq),vjust=-0.2,size=1) 
        ggplot(genegenotypedistdisr,aes(x=genegenotypedist,colour=group))+geom_line(stat="density")
+       ggsave(file=paste0(writedir,"ResultDistributionPlot.pdf"))
        dev.off()
        
       #################################correlation between top PCs from genotype data and clinical traits #######################################################################
